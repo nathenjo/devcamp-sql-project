@@ -1,0 +1,116 @@
+Scripts for DevCamp SQL Project
+
+CREATE TABLE `devcamp_sql_project_schema`.`students` (
+  `students_id` INT NOT NULL AUTO_INCREMENT,
+  `students_name` VARCHAR(45) NOT NULL,
+  `students_email` VARCHAR(45) NOT NULL,
+  `students_school_id` INT NOT NULL,
+  `students_phone_number` DECIMAL NOT NULL,
+  PRIMARY KEY (`students_id`),
+  UNIQUE INDEX `students_id_UNIQUE` (`students_id` ASC) VISIBLE,
+  UNIQUE INDEX `students_email_UNIQUE` (`students_email` ASC) VISIBLE,
+  UNIQUE INDEX `students_school_id_UNIQUE` (`students_school_id` ASC) VISIBLE);
+
+CREATE TABLE `devcamp_sql_project_schema`.`courses` (
+  `courses_id` INT NOT NULL AUTO_INCREMENT,
+  `courses_name` VARCHAR(45) NOT NULL,
+  `courses_category` VARCHAR(45) NOT NULL,
+  `courses_credit_hours` INT NOT NULL,
+  PRIMARY KEY (`courses_id`),
+  UNIQUE INDEX `courses_id_UNIQUE` (`courses_id` ASC) VISIBLE);
+
+CREATE TABLE `devcamp_sql_project_schema`.`professors` (
+  `professors_id` INT NOT NULL AUTO_INCREMENT,
+  `professors_name` VARCHAR(45) NOT NULL,
+  `professors_email` VARCHAR(45) NOT NULL,
+  `professors_employee_id` INT NOT NULL,
+  `professors_course_id` INT NOT NULL,
+  PRIMARY KEY (`professors_id`),
+  UNIQUE INDEX `professors_id_UNIQUE` (`professors_id` ASC) VISIBLE,
+  INDEX `professors_course_id_idx` (`professors_course_id` ASC) VISIBLE,
+  CONSTRAINT `professors_course_id`
+    FOREIGN KEY (`professors_course_id`)
+    REFERENCES `devcamp_sql_project_schema`.`courses` (`courses_id`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION);
+
+CREATE TABLE `devcamp_sql_project_schema`.`grades` (
+  `grades_id` INT NOT NULL AUTO_INCREMENT,
+  `grades_name` VARCHAR(45) NOT NULL,
+  `grades_type` VARCHAR(45) NOT NULL,
+  `grades_points` INT NOT NULL,
+  `grades_student_id` INT NOT NULL,
+  PRIMARY KEY (`grades_id`),
+  UNIQUE INDEX `grades_id_UNIQUE` (`grades_id` ASC) VISIBLE,
+  INDEX `grades_students_id_idx` (`grades_student_id` ASC) VISIBLE,
+  CONSTRAINT `grades_students_id`
+    FOREIGN KEY (`grades_student_id`)
+    REFERENCES `devcamp_sql_project_schema`.`students` (`students_id`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION);
+
+for (let i = 1; i < 501; i++) {
+ console.log(`('Random Student ${i}', 'student${i}email@test.com', ${Math.floor(Math.random()*100000000)}, 843${Math.floor(Math.random()*10000000)}),`)
+}
+
+ALTER TABLE `devcamp_sql_project_schema`.`courses` 
+ADD COLUMN `courses_student_id` INT NOT NULL AFTER `courses_credit_hours`,
+ADD INDEX `courses_student_id_idx` (`courses_student_id` ASC) VISIBLE;
+;
+ALTER TABLE `devcamp_sql_project_schema`.`courses` 
+ADD CONSTRAINT `courses_student_id`
+  FOREIGN KEY (`courses_student_id`)
+  REFERENCES `devcamp_sql_project_schema`.`students` (`students_id`)
+  ON DELETE CASCADE
+  ON UPDATE NO ACTION;
+
+SELECT
+	professors_name,
+    courses_name,
+	AVG(grades_points)
+FROM students s
+JOIN courses c
+ON c.courses_student_id = s.students_id
+JOIN grades g
+ON g.grades_student_id = s.students_id
+JOIN professors p
+ON p.professors_id = c.courses_professor_id
+GROUP BY professors_id;
+
+SELECT
+	students_name,
+    students_id,
+    courses_name,
+    AVG(grades_points) as 'Student Average'
+FROM students s
+JOIN courses c
+ON c.courses_student_id = s.students_id
+JOIN grades g
+ON g.grades_student_id = s.students_id
+JOIN professors p
+ON p.professors_id = c.courses_professor_id
+GROUP BY students_id
+ORDER BY AVG(grades_points) DESC;
+
+SELECT
+	students_name,
+    students_id,
+    courses_name,
+    COUNT(courses_student_id)
+FROM students s
+JOIN courses c
+ON c.courses_student_id = s.students_id
+GROUP BY courses_name;
+
+SELECT
+	students_name,
+    students_id,
+    courses_name,
+    AVG(grades_points)
+FROM students s
+JOIN courses c
+ON c.courses_student_id = s.students_id
+JOIN grades g
+ON g.grades_student_id = s.students_id
+GROUP BY courses_name
+ORDER BY AVG(grades_points);
